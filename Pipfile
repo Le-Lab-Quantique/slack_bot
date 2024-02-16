@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 slack-sdk = "*"
+ariadne-codegen = "*"
 
 [dev-packages]
 
