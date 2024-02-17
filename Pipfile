@@ -11,6 +11,7 @@ pytest-cov = "*"
 pytest-mock = "*"
 pytest-socket = "*"
 pytest-sugar = "*"
+slack-bolt = "*"
 
 [dev-packages]
 
