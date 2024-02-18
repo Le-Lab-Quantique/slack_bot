@@ -12,6 +12,7 @@ pytest-mock = "*"
 pytest-socket = "*"
 pytest-sugar = "*"
 slack-bolt = "*"
+requests = "*"
 
 [dev-packages]
 
