@@ -1,0 +1,11 @@
+#Ingnore cache
+__pycache__/
+*.py[cod]
+*.Spy.class
+*.pyc
+
+
+#Ignore variable env
+.flaskenv
+.dockerignore
+.env

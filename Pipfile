@@ -5,6 +5,14 @@ name = "pypi"
 
 [packages]
 slack-sdk = "*"
+ariadne-codegen = "*"
+pytest = "*"
+pytest-cov = "*"
+pytest-mock = "*"
+pytest-socket = "*"
+pytest-sugar = "*"
+slack-bolt = "*"
+requests = "*"
 
 [dev-packages]
 
