@@ -48,13 +48,9 @@ response = requests.post(url, json={"query": query, "variables": variables})
 
 
 def get_partners():
-    # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
-        print(
-            json.dumps(data, indent=2)
-        )  # Print the response data in a readable format
         return data["data"]["partners"]["nodes"]
     else:
         print("Error:", response.status_code)
-        print(response.text)  # Print the error message if request fails
+        print(response.text)

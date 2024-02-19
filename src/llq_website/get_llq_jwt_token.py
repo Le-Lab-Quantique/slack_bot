@@ -1,4 +1,3 @@
-import os
 from typing import Literal
 
 import requests
@@ -6,13 +5,15 @@ import requests
 from .exceptions import NoLLQJWTTokenException
 from .utils import base_url
 
+from config import Config
+
 BearerToken = Literal["Bearer"]
 
 
 def _get_credentials() -> dict[str, str]:
     return {
-        "username": os.environ.get("LLQ_USERNAME"),
-        "password": os.environ.get("LLQ_PASSWORD"),
+        "username": Config.LLQ_USERNAME,
+        "password": Config.LLQ_PASSWORD,
     }
 
 

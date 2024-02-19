@@ -2,12 +2,13 @@ import os
 import logging
 
 from slack_bolt import App
-from src.llq_website.partner.get_partners import get_partners
 from src.slack.create_job import create_job_modal
+from src.slack.modal.modal_config import ModalCallbackIds
+from config import Config
 
 app = App(
-    token="",
-    signing_secret="",
+    token=Config.SLACK_BOT_TOKEN,
+    signing_secret=Config.SLACK_SIGN_IN_SECRET,
 )
 logging.basicConfig(level=logging.DEBUG)
 
@@ -28,13 +29,11 @@ def hello_command(ack, body):
 def open_modal(ack, shortcut, client):
     ack()
     print("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM")
-    result = get_partners()
-    print(result)
     print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
     client.views_open(trigger_id=shortcut["trigger_id"], view=create_job_modal())
 
 
-@app.view("modal-submit-job")
+@app.view(ModalCallbackIds.JOB.value)
 def handle_view_submission_events(ack, body):
     ack()
     # job = map_to_job(body)

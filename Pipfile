@@ -15,6 +15,7 @@ slack-bolt = "*"
 requests = "*"
 aiohttp = "*"
 gql = {extras = ["all"], version = "*"}
+python-dotenv = "*"
 
 [dev-packages]
 

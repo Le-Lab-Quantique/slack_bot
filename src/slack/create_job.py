@@ -1,156 +1,99 @@
-from enum import Enum
-
 from src.llq_website.job.types import Job
 from .utils import process_body_result
 from src.llq_website.job.data import job_contract_types, job_types
 from src.llq_website.partner.get_partners import get_partners
-
-from typing import Optional
-
-
-class JobActionIds(Enum):
-    TITLE_ACTION = "job_title-action"
-    CONTACT_EMAIL = "job_contact_email-action"
-    DESCRIPTION = "job_description-action"
-    LOCALIZATION = "job_localization-action"
-    TYPE_OF_CONTRACT = "job_type_of_contract-action"
-    TYPE_OF_POST = "job_type_of_post-action"
-    DESCRIPTION_FILE = "job_description_file-action"
-    APPLY_LINK = "job_apply_link-action"
-    COMPANY = "job_company-action"
+from src.slack.job.job_definition import JobActionIds, JobConfig
+from src.slack.modal.modal_config import (
+    build_dropdown_list_option,
+    builld_modal_information,
+    ModalCallbackIds,
+)
 
 
-def basic_modal_information(modal_id: str, title: str) -> dict:
-    return {
-        "type": "modal",
-        "callback_id": modal_id,
-        "title": {"type": "plain_text", "text": title},
-        "close": {"type": "plain_text", "text": "Close"},
-        "submit": {"type": "plain_text", "text": "Submit"},
-    }
-
-
-def build_dropdown_list_option(text: str, value: Optional[str]) -> dict:
-    return {
-        "text": {
-            "type": "plain_text",
-            "text": text,
-            "emoji": True,
-        },
-        "value": value if value else text,
-    }
-
-
-def build_type_of_contract_option() -> list[dict]:
-    return [
-        build_dropdown_list_option(text=contract_type, value=None)
-        for contract_type in job_contract_types
-    ]
-
-
-def build_job_type_option() -> list[dict]:
-    return [
-        build_dropdown_list_option(text=job_type, value=None) for job_type in job_types
-    ]
-
-
-def build_company_option() -> list[dict]:
-    return [
+company_config = JobConfig(
+    "Structure",
+    JobActionIds.COMPANY,
+    "Select a structure",
+    options=[
         build_dropdown_list_option(text=company["partners"]["partnerName"], value=None)
         for company in get_partners()
+    ],
+)
+title_config = JobConfig("Job Title", JobActionIds.TITLE_ACTION, "Enter job title")
+description_config = JobConfig(
+    "Description",
+    JobActionIds.DESCRIPTION,
+    "Enter job description",
+    is_multiline=True,
+)
+localization_config = JobConfig(
+    "Localization", JobActionIds.LOCALIZATION, "Enter job localization"
+)
+contract_config = JobConfig(
+    "Contract",
+    JobActionIds.TYPE_OF_CONTRACT,
+    "Select a contract",
+    options=[
+        build_dropdown_list_option(text=contract_type, value=None)
+        for contract_type in job_contract_types
+    ],
+)
+post_config = JobConfig(
+    "Sector",
+    JobActionIds.TYPE_OF_POST,
+    "Select a sector",
+    options=[
+        build_dropdown_list_option(text=job_type, value=None) for job_type in job_types
+    ],
+)
+apply_link_config = JobConfig(
+    "Apply link", JobActionIds.APPLY_LINK, "Enter apply link", is_optional=True
+)
+contact_email_config = JobConfig(
+    "Contact email",
+    JobActionIds.CONTACT_EMAIL,
+    "Enter contact email",
+    is_optional=True,
+)
+
+configs = [
+    company_config,
+    title_config,
+    description_config,
+    localization_config,
+    contract_config,
+    post_config,
+    apply_link_config,
+    contact_email_config,
+]
+
+
+def generate_blocks(configs: list[JobConfig]) -> list[dict]:
+    return [
+        {
+            "type": "input",
+            "element": {
+                "type": "static_select" if config.options else "plain_text_input",
+                "placeholder": {
+                    "type": "plain_text",
+                    "text": config.placeholder,
+                    "emoji": True,
+                },
+                **({"options": config.options} if config.options else {}),
+                "action_id": config.action_id,
+                **({"multiline": config.is_multiline} if config.is_multiline else {}),
+            },
+            "label": {"type": "plain_text", "text": config.label, "emoji": True},
+            "optional": config.is_optional,
+        }
+        for config in configs
     ]
 
 
 def create_job_modal() -> dict:
     return {
-        **basic_modal_information("modal-submit-job", "Create a job offer."),
-        "blocks": [
-            {
-                "type": "input",
-                "element": {
-                    "type": "static_select",
-                    "placeholder": {
-                        "type": "plain_text",
-                        "text": "Select an structure",
-                        "emoji": False,
-                    },
-                    "options": build_company_option(),
-                    "action_id": JobActionIds.COMPANY.value,
-                },
-                "label": {"type": "plain_text", "text": "Structure", "emoji": True},
-            },
-            {
-                "type": "input",
-                "element": {
-                    "type": "plain_text_input",
-                    "action_id": JobActionIds.TITLE_ACTION.value,
-                },
-                "label": {"type": "plain_text", "text": "Job Title", "emoji": True},
-            },
-            {
-                "type": "input",
-                "element": {
-                    "type": "plain_text_input",
-                    "multiline": True,
-                    "action_id": JobActionIds.DESCRIPTION.value,
-                },
-                "label": {"type": "plain_text", "text": "Description", "emoji": True},
-            },
-            {
-                "type": "input",
-                "element": {
-                    "type": "plain_text_input",
-                    "action_id": JobActionIds.LOCALIZATION.value,
-                },
-                "label": {"type": "plain_text", "text": "Localization", "emoji": True},
-            },
-            {
-                "type": "input",
-                "element": {
-                    "type": "static_select",
-                    "placeholder": {
-                        "type": "plain_text",
-                        "text": "Select an item",
-                        "emoji": True,
-                    },
-                    "options": build_type_of_contract_option(),
-                    "action_id": JobActionIds.TYPE_OF_CONTRACT.value,
-                },
-                "label": {"type": "plain_text", "text": "Contract", "emoji": True},
-            },
-            {
-                "type": "input",
-                "element": {
-                    "type": "static_select",
-                    "placeholder": {
-                        "type": "plain_text",
-                        "text": "Select an item",
-                        "emoji": True,
-                    },
-                    "options": build_job_type_option(),
-                    "action_id": JobActionIds.TYPE_OF_POST.value,
-                },
-                "label": {"type": "plain_text", "text": "Sector", "emoji": True},
-            },
-            {
-                "type": "input",
-                "element": {
-                    "type": "plain_text_input",
-                    "action_id": JobActionIds.APPLY_LINK.value,
-                },
-                "optional": True,
-                "label": {"type": "plain_text", "text": "Apply link", "emoji": True},
-            },
-            {
-                "type": "input",
-                "element": {
-                    "type": "email_text_input",
-                    "action_id": JobActionIds.CONTACT_EMAIL.value,
-                },
-                "optional": True,
-                "label": {"type": "plain_text", "text": "Contact email", "emoji": True},
-            },
-        ],
+        **builld_modal_information(ModalCallbackIds.JOB.value, "Create a job offer."),
+        "blocks": generate_blocks(configs),
     }
 
 
