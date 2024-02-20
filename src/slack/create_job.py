@@ -1,7 +1,8 @@
 from src.llq_website.job.types import Job
 from .utils import process_body_result
-from src.llq_website.job.data import job_contract_types, job_types
+from src.llq_website.job.data import job_contract_types, job_types, job_presences
 from src.llq_website.partner.get_partners import get_partners
+from src.llq_website.partner.get_partner_by_id import get_partners_by_id
 from src.slack.job.job_definition import JobActionIds, JobConfig
 from src.slack.modal.modal_config import (
     build_dropdown_list_option,
@@ -15,7 +16,9 @@ company_config = JobConfig(
     JobActionIds.COMPANY,
     "Select a structure",
     options=[
-        build_dropdown_list_option(text=company["partners"]["partnerName"], value=None)
+        build_dropdown_list_option(
+            text=company["partners"]["partnerName"], value=company["id"]
+        )
         for company in get_partners()
     ],
 )
@@ -46,6 +49,15 @@ post_config = JobConfig(
         build_dropdown_list_option(text=job_type, value=None) for job_type in job_types
     ],
 )
+presence_config = JobConfig(
+    "Presence",
+    JobActionIds.PRESENCE,
+    "Select a presence",
+    options=[
+        build_dropdown_list_option(text=presence, value=None)
+        for presence in job_presences
+    ],
+)
 apply_link_config = JobConfig(
     "Apply link", JobActionIds.APPLY_LINK, "Enter apply link", is_optional=True
 )
@@ -63,6 +75,7 @@ configs = [
     localization_config,
     contract_config,
     post_config,
+    presence_config,
     apply_link_config,
     contact_email_config,
 ]
@@ -100,10 +113,28 @@ def create_job_modal() -> dict:
 def map_to_job(body: dict) -> Job:
     attribute_map = {
         "job_title_": JobActionIds.TITLE_ACTION.value,
-        "job_description_": JobActionIds.CONTACT_EMAIL.value,
+        "job_description_": JobActionIds.DESCRIPTION.value,
+        "job_localization_": JobActionIds.LOCALIZATION.value,
+        "job_type_of_contract_": JobActionIds.TYPE_OF_CONTRACT.value,
+        "job_type_of_post_": JobActionIds.TYPE_OF_POST.value,
+        "job_presence_": JobActionIds.PRESENCE.value,
+        "job_compagny_name_": JobActionIds.COMPANY.value,
+        "job_contact_email": JobActionIds.CONTACT_EMAIL.value,
+        "job_apply_link": JobActionIds.APPLY_LINK.value,
     }
+
     attributes = {
         key: process_body_result(body).get(mapping, "")
         for key, mapping in attribute_map.items()
     }
-    return Job(**attributes)
+    compagny_id = attributes["job_compagny_name_"]
+    del attributes["job_compagny_name_"]
+    partner = get_partners_by_id(compagny_id)
+    partner_name = partner["partnerName"]
+    partner_image_database_id = partner["partnerLogo"]["node"]["databaseId"]
+
+    return Job(
+        **attributes,
+        job_compagny_name_=partner_name,
+        job_compagny_logo=partner_image_database_id
+    )

@@ -1,10 +1,14 @@
 import os
 import logging
+import json
 
 from slack_bolt import App
 from src.slack.create_job import create_job_modal
 from src.slack.modal.modal_config import ModalCallbackIds
 from config import Config
+from src.slack.create_job import map_to_job
+from dataclasses import asdict
+
 
 app = App(
     token=Config.SLACK_BOT_TOKEN,
@@ -15,7 +19,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 @app.middleware
 def log_request(logger, body, next):
-    logger.debug(body)
+    prettified_body = json.dumps(body, indent=4)
+    logger.debug(prettified_body)
     return next()
 
 
@@ -36,9 +41,9 @@ def open_modal(ack, shortcut, client):
 @app.view(ModalCallbackIds.JOB.value)
 def handle_view_submission_events(ack, body):
     ack()
-    # job = map_to_job(body)
+    job = map_to_job(body)
     print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
-    # print(job)
+    print(json.dumps(asdict(job)))
     print("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ")
 
 

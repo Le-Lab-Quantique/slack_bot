@@ -10,6 +10,7 @@ class JobActionIds(Enum):
     LOCALIZATION = "job_localization-action"
     TYPE_OF_CONTRACT = "job_type_of_contract-action"
     TYPE_OF_POST = "job_type_of_post-action"
+    PRESENCE = "job_presence-action"
     DESCRIPTION_FILE = "job_description_file-action"
     APPLY_LINK = "job_apply_link-action"
     COMPANY = "job_company-action"
