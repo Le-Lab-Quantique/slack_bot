@@ -1,8 +1,8 @@
 from typing import Optional
-from enum import Enum
+from src.utils import ExtendedEnum
 
 
-class ModalCallbackIds(Enum):
+class ModalCallbackIds(ExtendedEnum):
     JOB = "modal-submit-job"
 
 

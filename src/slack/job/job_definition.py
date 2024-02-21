@@ -1,19 +1,18 @@
-from enum import Enum
+from src.utils import ExtendedEnum
 
 from typing import Optional
 
 
-class JobActionIds(Enum):
-    TITLE_ACTION = "job_title-action"
-    CONTACT_EMAIL = "job_contact_email-action"
-    DESCRIPTION = "job_description-action"
-    LOCALIZATION = "job_localization-action"
-    TYPE_OF_CONTRACT = "job_type_of_contract-action"
-    TYPE_OF_POST = "job_type_of_post-action"
-    PRESENCE = "job_presence-action"
-    DESCRIPTION_FILE = "job_description_file-action"
-    APPLY_LINK = "job_apply_link-action"
-    COMPANY = "job_company-action"
+class JobActionIds(ExtendedEnum):
+    TITLE_ACTION = "job_title_"
+    DESCRIPTION = "job_description_"
+    LOCALIZATION = "job_localization_"
+    TYPE_OF_CONTRACT = "job_type_of_contract_"
+    TYPE_OF_POST = "job_type_of_post_"
+    PRESENCE = "job_presence_"
+    COMPANY = "job_compagny_name_"
+    CONTACT_EMAIL = "job_contact_email"
+    APPLY_LINK = "job_apply_link"
 
 
 class JobConfig:

@@ -111,30 +111,16 @@ def create_job_modal() -> dict:
 
 
 def map_to_job(body: dict) -> Job:
-    attribute_map = {
-        "job_title_": JobActionIds.TITLE_ACTION.value,
-        "job_description_": JobActionIds.DESCRIPTION.value,
-        "job_localization_": JobActionIds.LOCALIZATION.value,
-        "job_type_of_contract_": JobActionIds.TYPE_OF_CONTRACT.value,
-        "job_type_of_post_": JobActionIds.TYPE_OF_POST.value,
-        "job_presence_": JobActionIds.PRESENCE.value,
-        "job_compagny_name_": JobActionIds.COMPANY.value,
-        "job_contact_email": JobActionIds.CONTACT_EMAIL.value,
-        "job_apply_link": JobActionIds.APPLY_LINK.value,
-    }
-
+    job_action_attributes = JobActionIds.list()
     attributes = {
-        key: process_body_result(body).get(mapping, "")
-        for key, mapping in attribute_map.items()
+        key: process_body_result(body).get(key, "") for key in job_action_attributes
     }
     compagny_id = attributes["job_compagny_name_"]
-    del attributes["job_compagny_name_"]
     partner = get_partners_by_id(compagny_id)
-    partner_name = partner["partnerName"]
-    partner_image_database_id = partner["partnerLogo"]["node"]["databaseId"]
-
-    return Job(
-        **attributes,
-        job_compagny_name_=partner_name,
-        job_compagny_logo=partner_image_database_id
+    partner_image_database_id = (
+        partner.get("partnerLogo", {}).get("node", {}).get("databaseId", 0)
     )
+    attributes["job_compagny_name_"] = partner.get("partnerName", "")
+    attributes["job_compagny_logo"] = partner_image_database_id
+
+    return Job(**attributes)

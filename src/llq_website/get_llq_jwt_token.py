@@ -30,5 +30,5 @@ def get_token() -> BearerToken:
     else:
         username = _get_credentials()["username"]
         raise NoLLQJWTTokenException(
-            f"Failed to get LLQ JWT Token for {username}. \nStatus code : {response.status_code}"
+            f"Failed to get LLQ JWT Token for {username}. \nStatus code : {response.status_code} {_get_credentials()} {response.json()}"
         )

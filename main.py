@@ -8,6 +8,7 @@ from src.slack.modal.modal_config import ModalCallbackIds
 from config import Config
 from src.slack.create_job import map_to_job
 from dataclasses import asdict
+from src.llq_website.job.post_job import post_job_in_wordpress
 
 
 app = App(
@@ -42,8 +43,9 @@ def open_modal(ack, shortcut, client):
 def handle_view_submission_events(ack, body):
     ack()
     job = map_to_job(body)
+    result = post_job_in_wordpress(job)
     print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
-    print(json.dumps(asdict(job)))
+    print(result)
     print("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ")
 
 
