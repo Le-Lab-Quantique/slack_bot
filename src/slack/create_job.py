@@ -1,67 +1,63 @@
+import json
+
+from src.llq_website.job.data import job_contract_types, job_presences, job_types
 from src.llq_website.job.types import Job
-from .utils import process_body_result
-from src.llq_website.job.data import job_contract_types, job_types, job_presences
-from src.llq_website.partner.get_partners import get_partners
 from src.llq_website.partner.get_partner_by_id import get_partners_by_id
-from src.slack.job.job_definition import JobActionIds, JobConfig
+from src.llq_website.partner.get_partners import get_partners
+from src.slack.job.job_definition import JobActionIds
 from src.slack.modal.modal_config import (
-    build_dropdown_list_option,
-    builld_modal_information,
+    DropdownElement,
+    InputConfig,
+    Modal,
     ModalCallbackIds,
 )
 
+from .utils import process_body_result
 
-company_config = JobConfig(
+company_config = InputConfig(
     "Structure",
     JobActionIds.COMPANY,
     "Select a structure",
     options=[
-        build_dropdown_list_option(
-            text=company["partners"]["partnerName"], value=company["id"]
-        )
+        DropdownElement(text=company["partners"]["partnerName"], value=company["id"])
         for company in get_partners()
     ],
 )
-title_config = JobConfig("Job Title", JobActionIds.TITLE_ACTION, "Enter job title")
-description_config = JobConfig(
+title_config = InputConfig("Job Title", JobActionIds.TITLE_ACTION, "Enter job title")
+description_config = InputConfig(
     "Description",
     JobActionIds.DESCRIPTION,
     "Enter job description",
     is_multiline=True,
 )
-localization_config = JobConfig(
+localization_config = InputConfig(
     "Localization", JobActionIds.LOCALIZATION, "Enter job localization"
 )
-contract_config = JobConfig(
+contract_config = InputConfig(
     "Contract",
     JobActionIds.TYPE_OF_CONTRACT,
     "Select a contract",
     options=[
-        build_dropdown_list_option(text=contract_type, value=None)
+        DropdownElement(text=contract_type, value=None)
         for contract_type in job_contract_types
     ],
 )
-post_config = JobConfig(
+post_config = InputConfig(
     "Sector",
     JobActionIds.TYPE_OF_POST,
     "Select a sector",
-    options=[
-        build_dropdown_list_option(text=job_type, value=None) for job_type in job_types
-    ],
+    options=[DropdownElement(text=job_type, value=None) for job_type in job_types],
 )
-presence_config = JobConfig(
+presence_config = InputConfig(
     "Presence",
     JobActionIds.PRESENCE,
     "Select a presence",
-    options=[
-        build_dropdown_list_option(text=presence, value=None)
-        for presence in job_presences
-    ],
+    options=[DropdownElement(text=presence, value=None) for presence in job_presences],
 )
-apply_link_config = JobConfig(
+apply_link_config = InputConfig(
     "Apply link", JobActionIds.APPLY_LINK, "Enter apply link", is_optional=True
 )
-contact_email_config = JobConfig(
+contact_email_config = InputConfig(
     "Contact email",
     JobActionIds.CONTACT_EMAIL,
     "Enter contact email",
@@ -81,46 +77,24 @@ configs = [
 ]
 
 
-def generate_blocks(configs: list[JobConfig]) -> list[dict]:
-    return [
-        {
-            "type": "input",
-            "element": {
-                "type": "static_select" if config.options else "plain_text_input",
-                "placeholder": {
-                    "type": "plain_text",
-                    "text": config.placeholder,
-                    "emoji": True,
-                },
-                **({"options": config.options} if config.options else {}),
-                "action_id": config.action_id,
-                **({"multiline": config.is_multiline} if config.is_multiline else {}),
-            },
-            "label": {"type": "plain_text", "text": config.label, "emoji": True},
-            "optional": config.is_optional,
-        }
-        for config in configs
-    ]
-
-
-def create_job_modal() -> dict:
-    return {
-        **builld_modal_information(ModalCallbackIds.JOB.value, "Create a job offer."),
-        "blocks": generate_blocks(configs),
-    }
+def create_job_modal() -> str:
+    modal = Modal(ModalCallbackIds.JOB, "Create a job offer.", configs)
+    return json.dumps(modal, default=lambda o: o.__dict__)
 
 
 def map_to_job(body: dict) -> Job:
-    job_action_attributes = JobActionIds.list()
-    attributes = {
-        key: process_body_result(body).get(key, "") for key in job_action_attributes
-    }
-    compagny_id = attributes["job_compagny_name_"]
-    partner = get_partners_by_id(compagny_id)
-    partner_image_database_id = (
-        partner.get("partnerLogo", {}).get("node", {}).get("databaseId", 0)
-    )
-    attributes["job_compagny_name_"] = partner.get("partnerName", "")
+    attributes = process_body_result(body)
+
+    company_id = attributes.get("job_compagny_name_", None)
+    if not company_id:
+        raise ValueError("Company ID not found in attributes")
+
+    partner = get_partners_by_id(company_id)
+    partner_name = partner.get("partnerName", "")
+    partner_logo_node = partner.get("partnerLogo", {}).get("node", {})
+    partner_image_database_id = partner_logo_node.get("databaseId", 0)
+
+    attributes["job_compagny_name_"] = partner_name
     attributes["job_compagny_logo"] = partner_image_database_id
 
     return Job(**attributes)

@@ -22,6 +22,7 @@ job_presences = ["Remote", "Hybrid", "On Site"]
 job_types = [
     "Engineering",
     "Management",
+    "Commercial",
     "Growth & Organisation",
     "Product",
     "Research",

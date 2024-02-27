@@ -7,9 +7,7 @@ from src.slack.create_job import create_job_modal
 from src.slack.modal.modal_config import ModalCallbackIds
 from config import Config
 from src.slack.create_job import map_to_job
-from dataclasses import asdict
 from src.llq_website.job.post_job import post_job_in_wordpress
-
 
 app = App(
     token=Config.SLACK_BOT_TOKEN,
@@ -35,7 +33,7 @@ def hello_command(ack, body):
 def open_modal(ack, shortcut, client):
     ack()
     print("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM")
-    print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
+    print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
     client.views_open(trigger_id=shortcut["trigger_id"], view=create_job_modal())
 
 
