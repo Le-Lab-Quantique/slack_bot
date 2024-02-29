@@ -1,3 +1,6 @@
+[tool.isort]
+profile = "ruff"
+
 [tool.ruff]
 exclude = [
     ".bzr",
@@ -27,12 +30,9 @@ exclude = [
     "site-packages",
     "venv",
 ]
-
+lint.ignore = ["E501"]
 line-length = 89
-target-version = "py39"
-
-[tool.ruff.lint]
-select = [
+lint.select = [
     "B",
     "B9",
     "C",
@@ -40,12 +40,12 @@ select = [
     "F",
     "W",
 ]
-ignore = ["E501"]
+target-version = "py39"
 
-[lint.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 18
 
-[lint.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = [
     "F401",
     "F403",
