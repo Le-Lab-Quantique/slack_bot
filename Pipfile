@@ -16,6 +16,7 @@ requests = "*"
 aiohttp = "*"
 gql = {extras = ["all"], version = "*"}
 python-dotenv = "*"
+ruff = "*"
 
 [dev-packages]
 
