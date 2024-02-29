@@ -37,5 +37,5 @@ variables = {
 
 
 def get_partners():
-    data = GraphQLClient(varaibles=variables, query=query).get()
+    data = GraphQLClient(variables=variables, query=query).get()
     return data["data"]["partners"]["nodes"]
