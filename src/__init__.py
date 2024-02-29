@@ -1,13 +1,15 @@
-import os
-import logging
 import json
+import logging
 
 from slack_bolt import App
-from src.slack.create_job import create_job_modal
-from src.slack.modal.modal_config import ModalCallbackIds
+from slack_bolt.adapter.flask import SlackRequestHandler
+
 from config import Config
-from src.slack.create_job import map_to_job
 from src.llq_website.job.post_job import post_job_in_wordpress
+from src.slack.create_job import create_job_modal, map_to_job
+from src.slack.modal.modal_config import ModalCallbackIds
+from flask import Flask, request
+
 
 app = App(
     token=Config.SLACK_BOT_TOKEN,
@@ -32,8 +34,6 @@ def hello_command(ack, body):
 @app.shortcut("create_job_in_wp")
 def open_modal(ack, shortcut, client):
     ack()
-    print("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM")
-    print("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
     client.views_open(trigger_id=shortcut["trigger_id"], view=create_job_modal())
 
 
@@ -41,11 +41,13 @@ def open_modal(ack, shortcut, client):
 def handle_view_submission_events(ack, body):
     ack()
     job = map_to_job(body)
-    result = post_job_in_wordpress(job)
-    print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS")
-    print(result)
-    print("JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ")
+    post_job_in_wordpress(job)
 
 
-if __name__ == "__main__":
-    app.start(port=int(os.environ.get("PORT", 3100)))
+flask_app = Flask(__name__)
+handler = SlackRequestHandler(app)
+
+
+@flask_app.route("/slack/events", methods=["POST"])
+def slack_events():
+    return handler.handle(request)
