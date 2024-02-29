@@ -4,7 +4,7 @@ from src.llq_website.utils import base_url
 
 query = """
 query partner ($id:ID!) {
-  	partner(id:$id) {
+    partner(id:$id) {
         partners {
           partnerName
           partnerLogo {
