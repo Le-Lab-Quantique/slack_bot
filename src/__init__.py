@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
@@ -52,7 +51,3 @@ handler = SlackRequestHandler(app)
 @flask_app.route("/slack/events", methods=["POST"])
 def slack_events():
     return handler.handle(request)
-
-
-if __name__ == "__main__":
-    flask_app.run(port=int(os.environ.get("PORT", 3100)), debug=True)
