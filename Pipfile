@@ -17,6 +17,7 @@ aiohttp = "*"
 gql = {extras = ["all"], version = "*"}
 python-dotenv = "*"
 ruff = "*"
+flask = "*"
 
 [dev-packages]
 
