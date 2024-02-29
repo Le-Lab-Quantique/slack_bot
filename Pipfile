@@ -13,8 +13,11 @@ pytest-socket = "*"
 pytest-sugar = "*"
 slack-bolt = "*"
 requests = "*"
+aiohttp = "*"
+gql = {extras = ["all"], version = "*"}
+python-dotenv = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.11"
+python_version = "3.9"

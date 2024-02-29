@@ -1,4 +1,3 @@
-import os
 from typing import Literal
 
 import requests
@@ -6,13 +5,15 @@ import requests
 from .exceptions import NoLLQJWTTokenException
 from .utils import base_url
 
+from config import Config
+
 BearerToken = Literal["Bearer"]
 
 
 def _get_credentials() -> dict[str, str]:
     return {
-        "username": os.environ.get("LLQ_USERNAME"),
-        "password": os.environ.get("LLQ_PASSWORD"),
+        "username": Config.LLQ_USERNAME,
+        "password": Config.LLQ_PASSWORD,
     }
 
 
@@ -20,12 +21,14 @@ def get_token() -> BearerToken:
     url = f"{base_url}/wp-json/jwt-auth/v1/token"
     response = requests.post(
         url,
-        data=_get_credentials(),
+        json=_get_credentials(),
         headers={"Content-Type": "application/json"},
     )
     if response.status_code == 200:
-        return f"Bearer {response.json()["token"]}"
-    else: 
+        token = response.json()["token"]
+        return f"Bearer {token}"
+    else:
+        username = _get_credentials()["username"]
         raise NoLLQJWTTokenException(
-            f"Failed to get LLQ JWT Token for {_get_credentials()["username"]}. \nStatus code : {response.status_code}"
+            f"Failed to get LLQ JWT Token for {username}. \nStatus code : {response.status_code} {_get_credentials()} {response.json()}"
         )

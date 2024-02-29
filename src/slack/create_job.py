@@ -1,61 +1,100 @@
-from enum import Enum
+import json
 
+from src.llq_website.job.data import job_contract_types, job_presences, job_types
 from src.llq_website.job.types import Job
+from src.llq_website.partner.get_partner_by_id import get_partners_by_id
+from src.llq_website.partner.get_partners import get_partners
+from src.slack.job.job_definition import JobActionIds
+from src.slack.modal.modal_config import (
+    DropdownElement,
+    InputConfig,
+    Modal,
+    ModalCallbackIds,
+)
+
 from .utils import process_body_result
 
+company_config = InputConfig(
+    "Structure",
+    JobActionIds.COMPANY,
+    "Select a structure",
+    options=[
+        DropdownElement(text=company["partners"]["partnerName"], value=company["id"])
+        for company in get_partners()
+    ],
+)
+title_config = InputConfig("Job Title", JobActionIds.TITLE_ACTION, "Enter job title")
+description_config = InputConfig(
+    "Description",
+    JobActionIds.DESCRIPTION,
+    "Enter job description",
+    is_multiline=True,
+)
+localization_config = InputConfig(
+    "Localization", JobActionIds.LOCALIZATION, "Enter job localization"
+)
+contract_config = InputConfig(
+    "Contract",
+    JobActionIds.TYPE_OF_CONTRACT,
+    "Select a contract",
+    options=[
+        DropdownElement(text=contract_type, value=None)
+        for contract_type in job_contract_types
+    ],
+)
+post_config = InputConfig(
+    "Sector",
+    JobActionIds.TYPE_OF_POST,
+    "Select a sector",
+    options=[DropdownElement(text=job_type, value=None) for job_type in job_types],
+)
+presence_config = InputConfig(
+    "Presence",
+    JobActionIds.PRESENCE,
+    "Select a presence",
+    options=[DropdownElement(text=presence, value=None) for presence in job_presences],
+)
+apply_link_config = InputConfig(
+    "Apply link", JobActionIds.APPLY_LINK, "Enter apply link", is_optional=True
+)
+contact_email_config = InputConfig(
+    "Contact email",
+    JobActionIds.CONTACT_EMAIL,
+    "Enter contact email",
+    is_optional=True,
+)
 
-class JobActionIds(Enum):
-    TITLE_ACTION = "job_title-action"
-    CONTACT_EMAIL = "job_contact_email-action"
-    DESCRIPTION = "job_description-action"
-    LOCALIZATION = "job_localization-action"
-    TYPE_OF_CONTRACT = "job_type_of_contract-action"
-    TYPE_OF_POST = "job_type_of_post-action"
-    DESCRIPTION_FILE = "job_description_file-action"
-    APPLY_LINK = "job_apply_link-action"
+configs = [
+    company_config,
+    title_config,
+    description_config,
+    localization_config,
+    contract_config,
+    post_config,
+    presence_config,
+    apply_link_config,
+    contact_email_config,
+]
 
 
-def basic_modal_information(modal_id: str, title: str) -> dict:
-    return {
-        "type": "modal",
-        "callback_id": modal_id,
-        "title": {"type": "plain_text", "text": title},
-        "close": {"type": "plain_text", "text": "Close"},
-        "submit": {"type": "plain_text", "text": "Submit"},
-    }
-
-
-def create_job_modal() -> dict:
-    return {
-        **basic_modal_information("modal-submit-job", "Create a job offer."),
-        "blocks": [
-            {
-                "type": "input",
-                "element": {
-                    "type": "plain_text_input",
-                    "action_id": JobActionIds.TITLE_ACTION.value,
-                },
-                "label": {"type": "plain_text", "text": "Label", "emoji": True},
-            },
-            {
-                "type": "input",
-                "element": {
-                    "type": "email_text_input",
-                    "action_id": JobActionIds.CONTACT_EMAIL.value,
-                },
-                "label": {"type": "plain_text", "text": "Label", "emoji": True},
-            },
-        ],
-    }
+def create_job_modal() -> str:
+    modal = Modal(ModalCallbackIds.JOB, "Create a job offer.", configs)
+    return json.dumps(modal, default=lambda o: o.__dict__)
 
 
 def map_to_job(body: dict) -> Job:
-    attribute_map = {
-        "title": "job_title-action",
-        "contact_email": "job_contact_email-action",
-    }
-    attributes = {
-        key: process_body_result(body).get(mapping, "")
-        for key, mapping in attribute_map.items()
-    }
+    attributes = process_body_result(body)
+
+    company_id = attributes.get("job_compagny_name_", None)
+    if not company_id:
+        raise ValueError("Company ID not found in attributes")
+
+    partner = get_partners_by_id(company_id)
+    partner_name = partner.get("partnerName", "")
+    partner_logo_node = partner.get("partnerLogo", {}).get("node", {})
+    partner_image_database_id = partner_logo_node.get("databaseId", 0)
+
+    attributes["job_compagny_name_"] = partner_name
+    attributes["job_compagny_logo"] = partner_image_database_id
+
     return Job(**attributes)
