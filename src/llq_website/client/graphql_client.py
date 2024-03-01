@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
@@ -12,8 +12,8 @@ class GraphQLClient:
     A simple GraphQL client for making requests to a GraphQL API.
 
     Args:
-        variables (dict[str, Any]): A dictionary containing the variables to be used in the GraphQL query.
         query (str): The GraphQL query string.
+        variables (dict[str, Any], optional): A dictionary containing the variables to be used in the GraphQL query.
         headers (dict[str, str], optional): Custom HTTP headers to be included in the request. Default is None.
         timeout (int, optional): Timeout setting for the request in seconds. Default is None.
         retries (int, optional): Number of retries for failed requests. Default is 0.
@@ -46,11 +46,11 @@ class GraphQLClient:
 
     def __init__(
         self,
-        variables: dict[str, Any],
         query: str,
-        headers: dict[str, str] = None,
-        timeout: int = None,
-        retries: int = 0,
+        variables: Optional[dict[str, Any]] = None,
+        headers: Optional[dict[str, str]] = None,
+        timeout: Optional[int] = None,
+        retries: Optional[int] = 0,
     ) -> None:
         self.url: str = f"{base_url}/graphql"
         self.variables: dict[str, Any] = variables
