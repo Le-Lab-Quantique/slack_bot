@@ -85,7 +85,7 @@ class GraphQLClient:
     def _send_request(self, session: requests.Session):
         response = session.post(
             self.url,
-            json={"query": self.query, "varaibles": self.variables},
+            json={"query": self.query, "variables": self.variables},
             headers=self.headers,
             timeout=self.timeout,
         )
