@@ -2,7 +2,10 @@ import json
 
 from src.llq_website.job.data import job_contract_types, job_presences, job_types
 from src.llq_website.job.types import Job
-from src.llq_website.partner.get_partner_by_id import get_partners_by_id
+from src.llq_website.partner.get_partner_by_id import (
+    get_partners_by_id,
+    PartnerWithLogo,
+)
 from src.llq_website.partner.get_partners import get_partners
 from src.slack.job.job_definition import JobActionIds
 from src.slack.modal.modal_config import (
@@ -13,6 +16,8 @@ from src.slack.modal.modal_config import (
 )
 
 from .utils import process_body_result
+from dataclasses import dataclass
+
 
 company_config = InputConfig(
     "Structure",
@@ -82,7 +87,13 @@ def create_job_modal() -> str:
     return json.dumps(modal, default=lambda o: o.__dict__)
 
 
-def map_to_job(body: dict) -> Job:
+@dataclass
+class CreatedJobResult:
+    job: Job
+    partner: PartnerWithLogo
+
+
+def map_to_job(body: dict) -> CreatedJobResult:
     attributes = process_body_result(body)
 
     company_id = attributes.get("job_compagny_name_", None)
@@ -90,11 +101,8 @@ def map_to_job(body: dict) -> Job:
         raise ValueError("Company ID not found in attributes")
 
     partner = get_partners_by_id(company_id)
-    partner_name = partner.get("partnerName", "")
-    partner_logo_node = partner.get("partnerLogo", {}).get("node", {})
-    partner_image_database_id = partner_logo_node.get("databaseId", 0)
 
-    attributes["job_compagny_name_"] = partner_name
-    attributes["job_compagny_logo"] = partner_image_database_id
+    attributes["job_compagny_name_"] = partner.name
+    attributes["job_compagny_logo"] = partner.database_id
 
-    return Job(**attributes)
+    return CreatedJobResult(job=Job(**attributes), partner=partner)
