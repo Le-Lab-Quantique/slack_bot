@@ -1,13 +1,10 @@
 from typing import Any, Optional
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3 import Retry
-from .exceptions import GraphQLClientException
+from .client import Client
 
 from src.llq_website.utils import base_url
 
 
-class GraphQLClient:
+class GraphQLClient(Client):
     """
     A simple GraphQL client for making requests to a GraphQL API.
 
@@ -42,8 +39,6 @@ class GraphQLClient:
         {'data': {'user': {'name': 'John Doe'}}}
     """
 
-    ERROR_STATUS = [404, 500, 502, 503, 504]
-
     def __init__(
         self,
         query: str,
@@ -69,35 +64,5 @@ class GraphQLClient:
         Raises:
             GraphQLClientException: If the request to the GraphQL API fails or returns a non-200 status code.
         """
-        session = self._create_retry_session()
-        for _ in range(self.retries + 1):
-            response = self._send_request(session)
-            if response.status_code == 200:
-                return response.json()
-            elif response.status_code not in self.ERROR_STATUS:
-                raise GraphQLClientException(
-                    f"\n status: {response.status_code} \n message : GraphQL API issue.  \n variables : {self.variables} \n query : {self.query} "
-                )
-        raise GraphQLClientException(
-            f"Failed to make request, after : {self.retries} retries"
-        )
-
-    def _send_request(self, session: requests.Session):
-        response = session.post(
-            self.url,
-            json={"query": self.query, "variables": self.variables},
-            headers=self.headers,
-            timeout=self.timeout,
-        )
-        return response
-
-    def _create_retry_session(self) -> requests.Session:
-        session = requests.Session()
-        retry_strategy = Retry(
-            total=self.retries,
-            backoff_factor=1,
-            status_forcelist=self.ERROR_STATUS,
-        )
-        adapter = HTTPAdapter(max_retries=retry_strategy)
-        session.mount("https://", adapter)
-        return session
+        json = {"query": self.query, "variables": self.variables}
+        return self.make_request(data=json)
