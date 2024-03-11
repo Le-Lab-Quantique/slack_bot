@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Optional
 from .client import Client
 
 from src.llq_website.utils import base_url
