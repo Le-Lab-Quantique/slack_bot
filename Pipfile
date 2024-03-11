@@ -19,6 +19,8 @@ python-dotenv = "*"
 ruff = "*"
 flask = "*"
 uuid-utils = "*"
+gunicorn = "*"
+gevent = "*"
 
 [dev-packages]
 
