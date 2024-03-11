@@ -1,6 +1,16 @@
-import requests
+from src.llq_website.client.graphql_client import GraphQLClient
+from dataclasses import dataclass
 
-from src.llq_website.utils import base_url
+from typing import Optional
+
+
+@dataclass
+class PartnerWithLogo:
+    name: str
+    database_id: int
+    media_item_url: str
+    alt_text: Optional[str]
+
 
 query = """
 query partner ($id:ID!) {
@@ -10,23 +20,31 @@ query partner ($id:ID!) {
           partnerLogo {
             node {
               databaseId
+              mediaItemUrl
+              altText
             }
           }
         }
     }
 }
 """
-url = f"{base_url}/graphql"
 
 
-def get_partners_by_id(partner_id: str):
+def get_partners_by_id(partner_id: str) -> PartnerWithLogo:
     variables = {
         "id": "".join(partner_id),
     }
-    response = requests.post(url, json={"query": query, "variables": variables})
-    if response.status_code == 200:
-        data = response.json()
-        return data["data"]["partner"]["partners"]
-    else:
-        print("Error:", response.status_code)
-        print(response.text)
+    data = GraphQLClient(variables=variables, query=query).get()
+    partner = data["data"]["partner"]["partners"]
+    partner_name = partner.get("partnerName", "")
+    partner_logo_node = partner.get("partnerLogo", {}).get("node", {})
+    partner_image_database_id = partner_logo_node.get("databaseId", 0)
+    partner_media_item_url = partner_logo_node.get("mediaItemUrl", "")
+    partner_alt_text = partner_logo_node.get("altText", "")
+
+    return PartnerWithLogo(
+        name=partner_name,
+        database_id=partner_image_database_id,
+        media_item_url=partner_media_item_url,
+        alt_text=partner_alt_text,
+    )

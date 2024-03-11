@@ -5,10 +5,15 @@ import os
 from slack_bolt import App
 
 from config import Config, load_config
-from src.llq_website.job.post_job import post_job_in_wordpress
+from src.llq_website.job.post_job import (
+    post_job_in_wordpress,
+    delete_job,
+    edit_job_status,
+)
 from src.slack.create_job import create_job_modal, map_to_job
 from src.slack.modal.modal_config import ModalCallbackIds
-from flask import Flask, request
+from flask import Flask
+from src.slack.message.message_config import create_confirm_or_reject_message
 
 
 app = App(
@@ -38,10 +43,31 @@ def open_modal(ack, shortcut, client):
 
 
 @app.view(ModalCallbackIds.JOB.value)
-def handle_view_submission_events(ack, body):
+def handle_view_submission_events(logger, ack, body, say):
+    pending_jobs_channel_id = "C06JZ4P0U2K"
     ack()
-    job = map_to_job(body)
-    post_job_in_wordpress(job)
+    processed_body = map_to_job(body)
+    posted_job = post_job_in_wordpress(processed_body.job)
+    posted_job_id = posted_job.get("id", "")
+    say(
+        blocks=create_confirm_or_reject_message(processed_body, str(posted_job_id)),
+        channel=pending_jobs_channel_id,
+        text="CONFIRM_JOB_MESSAGE",
+    )
+
+
+@app.action("approve_job")
+def approve_job(ack, say, body):
+    job_id = body["actions"][0]["value"]
+    edit_job_status(job_id)
+    say("Job is approved !")
+
+
+@app.action("not_approve_job")
+def unapprove_job(ack, say, body):
+    job_id = body["actions"][0]["value"]
+    delete_job(job_id)
+    say("Job is rejected !")
 
 
 def create_app(environment=None) -> Flask:
