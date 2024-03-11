@@ -3,5 +3,5 @@ base_url = "https://lelabquantique.com"
 
 class WordPressPostStatus:
     DRAFT = "draft"
-    PUBLISHED = "published"
+    PUBLISHED = "publish"
     PENDING_REVIEW = "pending review"

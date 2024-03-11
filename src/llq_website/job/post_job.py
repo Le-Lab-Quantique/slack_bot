@@ -18,3 +18,14 @@ def post_job_in_wordpress(job: Job) -> dict:
         "acf": asdict(job),
     }
     return RESTClient("job", headers=headers).post(data=job_post)
+
+
+def edit_job_status(job_id: str):
+    params = {
+        "status": WordPressPostStatus.PUBLISHED,
+    }
+    return RESTClient(f"job/{job_id}", headers=headers).update(data=params)
+
+
+def delete_job(job_id: str):
+    return RESTClient(f"job/{job_id}", headers=headers).delete()

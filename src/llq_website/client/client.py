@@ -28,7 +28,7 @@ class Client:
         """Overrides Client.post()"""
         pass
 
-    def make_request(self, data: dict, method: str = "POST") -> dict:
+    def make_request(self, method: str = "POST", data: dict = None) -> dict:
         """
         Sends a POST request to the API endpoint with the specified json body.
 
@@ -40,11 +40,7 @@ class Client:
         """
         session = self._create_retry_session()
         for _ in range(self.retries + 1):
-            response = (
-                self._send_post_request(session, data)
-                if method.upper() == "POST"
-                else self._send_get_request(session)
-            )
+            response = self._send_request(session=session, method=method, data=data)
             if response.status_code not in self.ERROR_STATUS:
                 return response.json()
             else:
@@ -53,21 +49,37 @@ class Client:
                 )
         raise ClientException(f"Failed to make request, after : {self.retries} retries")
 
-    def _send_post_request(self, session: requests.Session, data: dict):
-        response = session.post(
-            self.url,
-            json=data,
-            headers=self.headers,
-            timeout=self.timeout,
-        )
-        return response
+    def _send_request(self, session: requests.Session, method: str, data: dict = None):
+        """
+        Sends a request to the API endpoint with the specified HTTP method and JSON body.
 
-    def _send_get_request(self, session: requests.Session):
-        response = session.get(
-            self.url,
-            headers=self.headers,
-            timeout=self.timeout,
+        Parameters:
+            session (requests.Session): The requests Session object.
+            method (str): The HTTP method to use (POST, GET, PUT, DELETE).
+            data (dict, optional): The JSON body to send with the request (default is None).
+
+        Returns:
+            requests.Response: The response from the API.
+
+        Raises:
+            requests.HTTPError: If the request to the API fails or returns a non-200 status code.
+        """
+        request_method = {
+            "POST": session.post,
+            "GET": session.get,
+            "PUT": session.put,
+            "DELETE": session.delete,
+        }.get(method.upper())
+
+        if request_method is None:
+            raise ValueError(f"Unsupported HTTP method: {method}")
+
+        response = request_method(
+            self.url, json=data, headers=self.headers, timeout=self.timeout
         )
+
+        response.raise_for_status()
+
         return response
 
     def _create_retry_session(self) -> requests.Session:
