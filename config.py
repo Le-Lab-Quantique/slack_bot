@@ -18,7 +18,6 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    PORT = os.environ.get("PORT", 80)
 
 
 class TestingConfig(Config):

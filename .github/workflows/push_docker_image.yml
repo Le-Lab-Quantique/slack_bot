@@ -5,8 +5,12 @@ on:
     branches: ["main"]
 
 jobs:
+  test-before-push:
+    name: Tests Before Push Image
+    uses: ./.github/workflows/tests.yml
   push_to_registry:
     name: Push Docker image to Docker Hub
+    needs: [test-before-push]
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
