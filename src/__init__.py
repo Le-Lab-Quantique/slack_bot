@@ -14,7 +14,7 @@ env = os.environ.get("ENV")
 app: Flask = Flask(__name__, instance_relative_config=True)
 
 
-def create_slack_app(environment=None):
+def create_slack_app(environment=None) -> App:
     config = load_config(environment or env)
     return App(token=config.SLACK_BOT_TOKEN, signing_secret=config.SLACK_SIGN_IN_SECRET)
 
@@ -26,6 +26,8 @@ def create_app(environment=None) -> Flask:
 
 
 def register_slack_handlers():
+    if env == "testing":
+        return
     logging.basicConfig(level=logging.DEBUG)
     slack_app = create_slack_app()
     register_listeners(slack_app)
