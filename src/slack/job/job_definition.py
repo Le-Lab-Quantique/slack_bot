@@ -3,7 +3,7 @@ from src.utils import ExtendedEnum
 from typing import Optional
 
 
-class JobActionIds(ExtendedEnum):
+class JobActionsId(ExtendedEnum):
     TITLE_ACTION = "job_title_"
     DESCRIPTION = "job_description_"
     LOCALIZATION = "job_localization_"
@@ -19,7 +19,7 @@ class JobConfig:
     def __init__(
         self,
         label: str,
-        action_id: JobActionIds,
+        action_id: JobActionsId,
         placeholder: str,
         options: Optional[list[dict]] = None,
         is_multiline: bool = False,

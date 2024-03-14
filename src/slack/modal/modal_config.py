@@ -3,9 +3,7 @@ from src.utils import ExtendedEnum
 from src.slack.job.job_definition import JobConfig
 from enum import Enum
 
-
-class ModalCallbackIds(ExtendedEnum):
-    JOB = "modal-submit-job"
+from .modal_ids import ModalsCallbackId
 
 
 class InputElementTypes(Enum):
@@ -76,7 +74,7 @@ class Input:
 
 class Modal:
     def __init__(
-        self, modal_id: ModalCallbackIds, title: str, configs: list[InputConfig]
+        self, modal_id: ModalsCallbackId, title: str, configs: list[InputConfig]
     ) -> None:
         self.type = "modal"
         self.callback_id = modal_id.value

@@ -1,0 +1,43 @@
+{
+  "display_information": {
+    "name": "Le Lab Quantique - BOT",
+    "description": "I'm linked to the wordpress website 😎",
+    "background_color": "#3629a5"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "Le Lab Quantique - BOT",
+      "always_online": true
+    },
+    "shortcuts": [
+      {
+        "name": "Create Job",
+        "type": "global",
+        "callback_id": "create_job_in_wp",
+        "description": "Create a job"
+      }
+    ],
+    "slash_commands": [
+      {
+        "command": "/hello-world",
+        "url": "https://lelabquantique.dns.army/slack/events",
+        "description": "Say hello.",
+        "should_escape": false
+      }
+    ]
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": ["chat:write", "channels:read", "incoming-webhook", "commands"]
+    }
+  },
+  "settings": {
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "https://lelabquantique.dns.army/slack/events"
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}

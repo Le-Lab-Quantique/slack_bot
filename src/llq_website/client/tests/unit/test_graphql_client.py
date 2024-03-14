@@ -7,7 +7,7 @@ from src.llq_website.client.graphql_client import GraphQLClient
 
 @pytest.fixture
 def mock_graphql_client_request():
-    with patch("src.llq_website.client.client.Client._send_post_request") as mock_post:
+    with patch("src.llq_website.client.client.Client._send_request") as mock_post:
         yield mock_post
 
 
