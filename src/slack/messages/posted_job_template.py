@@ -1,4 +1,4 @@
-from src.slack.create_job import CreatedJobResult
+from src.slack.job.create_job import CreatedJobResult
 
 
 def posted_job_template(posted_job: CreatedJobResult) -> str:

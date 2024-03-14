@@ -10,7 +10,7 @@ from .types import Job
 headers = {"Content-Type": "application/json", "Authorization": get_token()}
 
 
-def post_job_in_wordpress(job: Job) -> dict:
+def post_job(job: Job) -> dict:
     job_post = {
         "title": job.job_title_,
         "status": WordPressPostStatus.DRAFT,

@@ -7,40 +7,40 @@ from src.llq_website.partner.get_partner_by_id import (
     PartnerWithLogo,
 )
 from src.llq_website.partner.get_partners import get_partners
-from src.slack.job.job_definition import JobActionIds
+from src.slack.job.job_definition import JobActionsId
 from src.slack.modal.modal_config import (
     DropdownElement,
     InputConfig,
     Modal,
-    ModalCallbackIds,
+    ModalsCallbackId,
 )
 
-from .utils import process_body_result
+from ..utils import process_body_result
 from dataclasses import dataclass
 
 
 company_config = InputConfig(
     "Structure",
-    JobActionIds.COMPANY,
+    JobActionsId.COMPANY,
     "Select a structure",
     options=[
         DropdownElement(text=company["partners"]["partnerName"], value=company["id"])
         for company in get_partners()
     ],
 )
-title_config = InputConfig("Job Title", JobActionIds.TITLE_ACTION, "Enter job title")
+title_config = InputConfig("Job Title", JobActionsId.TITLE_ACTION, "Enter job title")
 description_config = InputConfig(
     "Description",
-    JobActionIds.DESCRIPTION,
+    JobActionsId.DESCRIPTION,
     "Enter job description",
     is_multiline=True,
 )
 localization_config = InputConfig(
-    "Localization", JobActionIds.LOCALIZATION, "Enter job localization"
+    "Localization", JobActionsId.LOCALIZATION, "Enter job localization"
 )
 contract_config = InputConfig(
     "Contract",
-    JobActionIds.TYPE_OF_CONTRACT,
+    JobActionsId.TYPE_OF_CONTRACT,
     "Select a contract",
     options=[
         DropdownElement(text=contract_type, value=None)
@@ -49,22 +49,22 @@ contract_config = InputConfig(
 )
 post_config = InputConfig(
     "Sector",
-    JobActionIds.TYPE_OF_POST,
+    JobActionsId.TYPE_OF_POST,
     "Select a sector",
     options=[DropdownElement(text=job_type, value=None) for job_type in job_types],
 )
 presence_config = InputConfig(
     "Presence",
-    JobActionIds.PRESENCE,
+    JobActionsId.PRESENCE,
     "Select a presence",
     options=[DropdownElement(text=presence, value=None) for presence in job_presences],
 )
 apply_link_config = InputConfig(
-    "Apply link", JobActionIds.APPLY_LINK, "Enter apply link", is_optional=True
+    "Apply link", JobActionsId.APPLY_LINK, "Enter apply link", is_optional=True
 )
 contact_email_config = InputConfig(
     "Contact email",
-    JobActionIds.CONTACT_EMAIL,
+    JobActionsId.CONTACT_EMAIL,
     "Enter contact email",
     is_optional=True,
 )
@@ -83,7 +83,7 @@ configs = [
 
 
 def create_job_modal() -> str:
-    modal = Modal(ModalCallbackIds.JOB, "Create a job offer.", configs)
+    modal = Modal(ModalsCallbackId.JOB, "Create a job offer.", configs)
     return json.dumps(modal, default=lambda o: o.__dict__)
 
 
