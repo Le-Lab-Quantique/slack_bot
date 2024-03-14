@@ -1,4 +1,4 @@
-from src.llq_website.job.post_job import (
+from src.llq_website.job.job_api_actions import (
     post_job,
 )
 
