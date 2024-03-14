@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  llq_slack_bot:
+    image: elki97413/llq_slack_bot:latest
+    environment:
+      LLQ_USERNAME: "${LLQ_USERNAME}"
+      LLQ_PASSWORD: "${LLQ_PASSWORD}"
+      SLACK_BOT_TOKEN: "${SLACK_BOT_TOKEN}"
+      SLACK_SIGN_IN_SECRET: "${SLACK_SIGN_IN_SECRET}"
+    ports:
+      - "3100:3100"
