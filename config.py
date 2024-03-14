@@ -24,6 +24,8 @@ class ProductionConfig(Config):
 class TestingConfig(Config):
     DEBUG = True
     TESTING = True
+    SLACK_BOT_TOKEN = ""
+    SLACK_SIGN_IN_SECRET = ""
 
 
 def load_config(env: str) -> Config:
