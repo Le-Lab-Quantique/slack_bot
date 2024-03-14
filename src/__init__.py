@@ -48,7 +48,7 @@ def open_modal(ack, shortcut, client):
 
 @slack_app.view(ModalCallbackIds.JOB.value)
 def handle_view_submission_events(logger, ack, body, say):
-    pending_jobs_channel_id = "C06JZ4P0U2K"
+    pending_jobs_channel_id = "C06P1M5J0HG"
     ack()
     processed_body = map_to_job(body)
     posted_job = post_job_in_wordpress(processed_body.job)

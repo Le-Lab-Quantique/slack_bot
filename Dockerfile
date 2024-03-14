@@ -14,6 +14,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 5005
+EXPOSE 3100
 
 CMD ["gunicorn", "run:app" ,"-c" ,"gunicorn.conf.py" ]
