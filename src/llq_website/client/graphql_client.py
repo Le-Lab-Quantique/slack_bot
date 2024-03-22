@@ -2,6 +2,7 @@ from typing import Any, Optional
 from .client import Client
 
 from src.llq_website.utils import base_url
+from src.llq_website.utils import camel_to_snake
 
 
 class GraphQLClient(Client):
@@ -65,4 +66,4 @@ class GraphQLClient(Client):
             GraphQLClientException: If the request to the GraphQL API fails or returns a non-200 status code.
         """
         json = {"query": self.query, "variables": self.variables}
-        return self.make_request(data=json)
+        return camel_to_snake(self.make_request(data=json))
