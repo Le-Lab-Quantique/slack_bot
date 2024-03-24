@@ -54,8 +54,6 @@ variables = {"first": 1, "startDate": {"after": formatted_date}}
 def get_next_event() -> Event:
     data = GraphQLClient(variables=variables, query=query).get()
     result = data["data"]["events"]["nodes"][0]
-    print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSssss")
-    print(result)
 
     organizers_data = OrganizerData(
         nodes=[
