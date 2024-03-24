@@ -27,7 +27,7 @@ def test_graphql_client_should_return_200_status(
 
     expected_response = {
         "data": {
-            "generalSettings": {
+            "general_settings": {
                 "title": "Le Lab Quantique",
                 "url": "https://lelabquantique.com",
             }
