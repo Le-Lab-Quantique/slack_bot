@@ -24,6 +24,11 @@ class Organizer:
 
 
 @dataclass
+class OrganizerData:
+    nodes: List[Organizer]
+
+
+@dataclass
 class Event:
     title: str
     duration: str
@@ -35,5 +40,5 @@ class Event:
     link: str
     events_categories: List[EventCategory]
     featured_image: Optional[FeaturedImageNode]
-    organizers: Optional[List[Organizer]]
+    organizers: Optional[OrganizerData]
     venue: Venue
