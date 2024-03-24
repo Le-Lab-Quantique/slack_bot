@@ -23,6 +23,12 @@
         "url": "https://lelabquantique.dns.army/slack/events",
         "description": "Say hello.",
         "should_escape": false
+      },
+      {
+        "command": "/next-event",
+        "url": "https://lelabquantique.dns.army/slack/events",
+        "description": "Getting last event.",
+        "should_escape": true
       }
     ]
   },

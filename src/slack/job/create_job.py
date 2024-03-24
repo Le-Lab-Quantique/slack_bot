@@ -24,7 +24,7 @@ company_config = InputConfig(
     JobActionsId.COMPANY,
     "Select a structure",
     options=[
-        DropdownElement(text=company["partners"]["partnerName"], value=company["id"])
+        DropdownElement(text=company["partners"]["partner_name"], value=company["id"])
         for company in get_partners()
     ],
 )

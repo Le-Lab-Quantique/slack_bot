@@ -36,11 +36,11 @@ def get_partners_by_id(partner_id: str) -> PartnerWithLogo:
     }
     data = GraphQLClient(variables=variables, query=query).get()
     partner = data["data"]["partner"]["partners"]
-    partner_name = partner.get("partnerName", "")
+    partner_name = partner.get("partner_name", "")
     partner_logo_node = partner.get("partnerLogo", {}).get("node", {})
-    partner_image_database_id = partner_logo_node.get("databaseId", 0)
-    partner_media_item_url = partner_logo_node.get("mediaItemUrl", "")
-    partner_alt_text = partner_logo_node.get("altText", "")
+    partner_image_database_id = partner_logo_node.get("database_id", 0)
+    partner_media_item_url = partner_logo_node.get("media_item_url", "")
+    partner_alt_text = partner_logo_node.get("alt_text", "")
 
     return PartnerWithLogo(
         name=partner_name,
