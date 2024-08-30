@@ -30,9 +30,7 @@ def _format_date(date: str) -> str:
 
 def create_next_event_message(event: Event) -> list:
     organizer = (
-        event.organizers.nodes[0].title
-        if len(event.organizers.nodes) == 1
-        else "Le Lab Quantique"
+        event.organizers.nodes[0].title if event.organizers else "Le Lab Quantique"
     )
 
     formatted_non_full_day_date = f"From : *{_format_date(event.start_date)}* \n To : *{_format_date(event.end_date)}*"
@@ -43,7 +41,7 @@ def create_next_event_message(event: Event) -> list:
 
     header = HeaderBlock(text=event.title)
     main_content = SectionBlock(
-        text=f"Organized by : *{organizer}* \n {select_good_date_format} \n\n {event.venue.city}, {event.venue.address} ",
+        text=f"Organized by : *{organizer}* \n {select_good_date_format} \n\n {event.venue.city if event.venue else ""}, {event.venue.address if event.venue else ""} ",
         accessory=ImageElement(
             alt_text="Image represent event or Le Lab Quantique",
             image_url=(
