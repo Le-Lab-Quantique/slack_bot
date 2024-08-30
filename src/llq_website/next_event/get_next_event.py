@@ -82,6 +82,8 @@ def get_next_event() -> Event:
         organizers=organizers_data,
         venue=Venue(
             city=venue_data.get("city", ""), address=venue_data.get("address", "")
-        ),
+        )
+        if venue_data
+        else None,
     )
     return event

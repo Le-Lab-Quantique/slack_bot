@@ -41,4 +41,4 @@ class Event:
     events_categories: List[EventCategory]
     featured_image: Optional[FeaturedImageNode]
     organizers: Optional[OrganizerData]
-    venue: Venue
+    venue: Optional[Venue]
