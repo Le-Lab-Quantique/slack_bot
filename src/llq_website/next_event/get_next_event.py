@@ -80,6 +80,8 @@ def get_next_event() -> Event:
         events_categories=events_categories_list,
         featured_image=featured_image,
         organizers=organizers_data,
-        venue=Venue(city=venue_data.get("city"), address=venue_data.get("address")),
+        venue=Venue(
+            city=venue_data.get("city", ""), address=venue_data.get("address", "")
+        ),
     )
     return event
