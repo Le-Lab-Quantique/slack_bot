@@ -38,10 +38,15 @@ def create_next_event_message(event: Event) -> list:
     select_good_date_format = (
         formatted_full_day_date if event.all_day else formatted_non_full_day_date
     )
+    city = event.venue.city if event.venue else ""
+    address = event.venue.address if event.venue else ""
+    text = (
+        f"Organized by : *{organizer}* \n {select_good_date_format} \n\n {city}, {address} ",
+    )
 
     header = HeaderBlock(text=event.title)
     main_content = SectionBlock(
-        text=f"Organized by : *{organizer}* \n {select_good_date_format} \n\n {event.venue.city if event.venue else ""}, {event.venue.address if event.venue else ""} ",
+        text=text,
         accessory=ImageElement(
             alt_text="Image represent event or Le Lab Quantique",
             image_url=(
