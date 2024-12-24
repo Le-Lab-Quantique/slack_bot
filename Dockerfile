@@ -9,8 +9,8 @@ ENV ENV=production
 ENV FLASK_APP=src
 
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.in .
+RUN pip install --no-cache-dir -r requirements.in
 
 COPY . .
 
