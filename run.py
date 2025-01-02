@@ -1,7 +1,7 @@
 import os
 
-from src import app
-
+from src import web, setup_web_app 
 
 if __name__ == "__main__":
-    app.run(port=int(os.environ.get("PORT", 3100)), debug=True)
+    web_app = setup_web_app() 
+    web.run_app(web_app)

@@ -10,9 +10,7 @@ from slack_sdk.models.blocks import (
     PlainTextObject,
     SectionBlock,
 )
-
-from src.llq_website.next_event.next_event_types import Event
-
+from llq.type.event import Event
 
 def _format_date(date: str) -> str:
     try:

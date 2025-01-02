@@ -1,16 +1,15 @@
-from src.llq_website.job.job_api_actions import (
-    delete_job,
-    edit_job_status,
-)
+from llq import DeleteJobMutation, UpdateJobStatusMutation
+from llq.schema import PostStatusEnum
 
-
-def approve_job_action(say, body):
+async def approve_job_action(say, body):
     job_id = body["actions"][0]["value"]
-    edit_job_status(job_id)
-    say("Job is approved !")
+    update_job_status = UpdateJobStatusMutation()
+    mutation = update_job_status.get(id=job_id, status=PostStatusEnum.PUBLISH)
+    await say("Job is approved !")
 
 
-def reject_job_action(say, body):
+async def reject_job_action(say, body):
     job_id = body["actions"][0]["value"]
-    delete_job(job_id)
-    say("Job is rejected !")
+    delete_job = DeleteJobMutation()
+    mutation = delete_job.get(id=job_id) 
+    await say("Job is rejected !")

@@ -1,7 +1,7 @@
-from slack_bolt import Ack, Respond
+from slack_bolt.async_app import AsyncRespond, AsyncAck
 
 
-def hello_world_command(ack: Ack, respond: Respond, body: dict):
-    ack()
+async def hello_world_command(ack: AsyncAck, respond: AsyncRespond, body: dict):
+    await ack()
     user_id = body["user_id"]
-    respond(f"Hi <@{user_id}>!")
+    await respond(f"Hi <@{user_id}>!")
