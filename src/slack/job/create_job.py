@@ -1,12 +1,5 @@
 import json
 
-from src.llq_website.job.data import job_contract_types, job_presences, job_types
-from src.llq_website.job.types import Job
-from src.llq_website.partner.get_partner_by_id import (
-    get_partners_by_id,
-    PartnerWithLogo,
-)
-from src.llq_website.partner.get_partners import get_partners
 from src.slack.job.job_definition import JobActionsId
 from src.slack.modal.modal_config import (
     DropdownElement,
@@ -17,7 +10,9 @@ from src.slack.modal.modal_config import (
 
 from ..utils import process_body_result
 from dataclasses import dataclass
-
+from llq.type.job import Job
+from llq.type import Node, MediaItem
+from typing import Optional 
 
 company_config = InputConfig(
     "Structure",
@@ -25,7 +20,7 @@ company_config = InputConfig(
     "Select a structure",
     options=[
         DropdownElement(text=company["partners"]["partner_name"], value=company["id"])
-        for company in get_partners()
+        for company in [] # TODO: Replace with real list 
     ],
 )
 title_config = InputConfig("Job Title", JobActionsId.TITLE_ACTION, "Enter job title")
@@ -44,20 +39,20 @@ contract_config = InputConfig(
     "Select a contract",
     options=[
         DropdownElement(text=contract_type, value=None)
-        for contract_type in job_contract_types
+        for contract_type in [] # TODO : REPLACE 
     ],
 )
 post_config = InputConfig(
     "Sector",
     JobActionsId.TYPE_OF_POST,
     "Select a sector",
-    options=[DropdownElement(text=job_type, value=None) for job_type in job_types],
+    options=[DropdownElement(text=job_type, value=None) for job_type in [] ], # TODO : REPLACE 
 )
 presence_config = InputConfig(
     "Presence",
     JobActionsId.PRESENCE,
     "Select a presence",
-    options=[DropdownElement(text=presence, value=None) for presence in job_presences],
+    options=[DropdownElement(text=presence, value=None) for presence in []], # TODO : REPLACE
 )
 apply_link_config = InputConfig(
     "Apply link", JobActionsId.APPLY_LINK, "Enter apply link", is_optional=True
@@ -90,7 +85,7 @@ def create_job_modal() -> str:
 @dataclass
 class CreatedJobResult:
     job: Job
-    partner: PartnerWithLogo
+    partner: Optional[Node[MediaItem]]
 
 
 def map_to_job(body: dict) -> CreatedJobResult:
@@ -100,7 +95,7 @@ def map_to_job(body: dict) -> CreatedJobResult:
     if not company_id:
         raise ValueError("Company ID not found in attributes")
 
-    partner = get_partners_by_id(company_id)
+    partner = {} # TODO : REPLACE WITH REAL GET BY ID
 
     attributes["job_compagny_name_"] = partner.name
     attributes["job_compagny_logo"] = partner.database_id
