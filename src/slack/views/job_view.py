@@ -7,7 +7,7 @@ from llq import post_job
 
 async def handle_job_submission(ack: AsyncAck, body: dict, say: AsyncSay):
     await ack()
-    processed_body = map_to_job(body)
+    processed_body = await map_to_job(body)
     posted_job = post_job(processed_body.job)
     posted_job_id = posted_job.get("id", "")
     await say(
