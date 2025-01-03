@@ -1,42 +1,48 @@
-from dataclasses import asdict
-from src.slack.job.create_job import CreatedJobResult
-from src.slack.messages.message_config import (
-    PlainText,
-    Markdown,
-    Section,
-    Image,
-    Divider,
-    Button,
-    Actions,
+from slack_sdk.models.blocks import (
+    SectionBlock,
+    ImageElement,
+    DividerBlock,
+    ButtonElement,
+    ActionsBlock,
+    PlainTextObject,
+    MarkdownTextObject
 )
+from slack_sdk.models.blocks import Block
+from src.slack.job.create_job import CreatedJobResult
 from src.slack.messages.posted_job_template import posted_job_template
 from src.slack.actions.actions_id import ActionsId
-
+from typing import Sequence
 
 def create_confirm_or_reject_message(
     posted_job: CreatedJobResult, job_id: str
-) -> list[dict]:
-    title = PlainText(text=posted_job.job.job_title_)
-    markdown = Markdown(text=posted_job_template(posted_job))
-    section = Section(text=markdown)
+) -> Sequence[Block]:
+    markdown_text = posted_job_template(posted_job)
+    markdown = MarkdownTextObject(text=markdown_text)
 
-    image = Image(
-        title=title,
-        image_url=posted_job.partner.media_item_url,
-        alt_text=posted_job.partner.alt_text or "partner logo",
-    )
+    section = SectionBlock(text=markdown)
 
-    divider = Divider()
+    image_url = posted_job.partner.media_item_url
+    alt_text = posted_job.partner.alt_text or "partner logo"
+    image = ImageElement(image_url=image_url, alt_text=alt_text)
 
-    approve_button = Button(
+    divider = DividerBlock()
+
+    approve_button = ButtonElement(
         action_id=ActionsId.APPROVE_JOB.value,
-        text=PlainText(text="APPROVE ✅"),
+        text=PlainTextObject(text="APPROVE ✔️"),
         value=job_id,
     )
-    reject_button = Button(
-        action_id=ActionsId.REJECT_JOB.value, text=PlainText("REJECT ❎"), value=job_id
+    reject_button = ButtonElement(
+        action_id=ActionsId.REJECT_JOB.value,
+        text=PlainTextObject(text="REJECT ❌"),
+        value=job_id,
     )
 
-    actions = Actions(elements=[approve_button, reject_button])
+    actions = ActionsBlock(elements=[approve_button, reject_button])
 
-    return [asdict(section), asdict(image), asdict(divider), asdict(actions)]
+    return [
+        section,
+        image, 
+        divider,
+        actions,
+    ]

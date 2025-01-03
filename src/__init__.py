@@ -1,41 +1,98 @@
 import logging
 import os
-
-from flask import Flask, request
-from slack_bolt import App
-from slack_bolt.adapter.flask import SlackRequestHandler
+from typing import Optional, Callable, Awaitable
+from slack_sdk.socket_mode.aiohttp import SocketModeClient
+from slack_bolt.app.async_app import AsyncApp
+from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
+from aiohttp import web
+from slack_bolt.middleware.async_middleware import AsyncMiddleware
+from slack_bolt.request.async_request import AsyncBoltRequest
+from slack_bolt.response import BoltResponse
 
 from config import load_config
 from src.slack import register_listeners
+from llq import GraphQLClient
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+DEFAULT_ENV = "development"
+HEALTHCHECK_ROUTE = "/health"
+
+env = os.environ.get("ENV", DEFAULT_ENV)
+config = load_config(env)
+
+app = AsyncApp(token=config.SLACK_BOT_TOKEN)
+graphql_client = GraphQLClient(endpoint_url=config.GRAPHQL_ENDPOINT)
+socket_mode_client: Optional[SocketModeClient] = None
+class GraphQLMiddleware(AsyncMiddleware):
+    def __init__(self, client: GraphQLClient):
+        self.client = client
+
+    async def async_process(
+        self,
+        req: AsyncBoltRequest,
+        _resp: BoltResponse,
+        next: Callable[[], Awaitable[BoltResponse]]
+    ) -> Optional[BoltResponse]: 
+        req.context["graphql_client"] = self.client
+        return await next()
+
+async def start_services(web_app: web.Application):
+    """
+    Start Socket Mode client and GraphQL client.
+    """
+    global socket_mode_client
+    try:
+        handler = AsyncSocketModeHandler(app, config.SLACK_APP_TOKEN)
+        await handler.connect_async()
+        socket_mode_client = handler.client
+        logger.info("Socket Mode client connected successfully")
+        
+        await graphql_client.connect()
+        logger.info("GraphQL client initialized")
+        
+        await register_listeners(app)
+        logger.info("Listeners registered successfully")
+        
+    except Exception as e:
+        logger.error(f"Failed to start services: {e}")
+        raise
 
 
-env = os.environ.get("ENV")
-
-app: Flask = Flask(__name__, instance_relative_config=True)
-
-
-def create_slack_app(environment=None) -> App:
-    config = load_config(environment or env)
-    return App(token=config.SLACK_BOT_TOKEN, signing_secret=config.SLACK_SIGN_IN_SECRET)
-
-
-def create_app(environment=None) -> Flask:
-    config = load_config(environment or env)
-    app.config.from_object(config)
-    return app
+async def shutdown_services(web_app: web.Application):
+    """
+    Shutdown Socket Mode and GraphQL clients.
+    """
+    try:
+        if socket_mode_client:
+            await socket_mode_client.close()
+            logger.info("Socket Mode client closed successfully")
+        await graphql_client.close()
+        logger.info("GraphQL client closed successfully")
+    except Exception as e:
+        logger.error(f"Error during shutdown: {e}")
 
 
-def register_slack_handlers():
-    if env == "testing":
-        return
-    logging.basicConfig(level=logging.DEBUG)
-    slack_app = create_slack_app()
-    register_listeners(slack_app)
-    handler = SlackRequestHandler(slack_app)
-
-    @app.route("/slack/events", methods=["POST"])
-    def slack_events():
-        return handler.handle(request)
+async def healthcheck_handler(_req: web.Request) -> web.Response:
+    """
+    Health check endpoint to verify Socket Mode client status.
+    """
+    if socket_mode_client and socket_mode_client.is_connected():
+        return web.Response(status=200, text="OK")
+    logger.warning("Socket Mode client is inactive")
+    return web.Response(status=503, text="The Socket Mode client is inactive")
 
 
-register_slack_handlers()
+async def setup_web_app() -> web.Application:
+    """
+    Set up and configure the web application with services and healthcheck.
+    """
+    web_app = app.web_app(port=config.PORT)
+    web_app.add_routes([web.get(HEALTHCHECK_ROUTE, healthcheck_handler)])
+    web_app.on_startup.append(start_services)
+    web_app.on_cleanup.append(shutdown_services)
+    logger.info("Web application setup complete")
+    return web_app
+
+app.use(GraphQLMiddleware(graphql_client))
