@@ -1,12 +1,19 @@
-version: '3.8'
-
 services:
-  llq_slack_bot:
-    image: elki97413/llq_slack_bot:latest
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       LLQ_USERNAME: "${LLQ_USERNAME}"
       LLQ_PASSWORD: "${LLQ_PASSWORD}"
       SLACK_BOT_TOKEN: "${SLACK_BOT_TOKEN}"
       SLACK_SIGN_IN_SECRET: "${SLACK_SIGN_IN_SECRET}"
+      SLACK_APP_TOKEN: "${SLACK_APP_TOKEN}"
     ports:
       - "3100:3100"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

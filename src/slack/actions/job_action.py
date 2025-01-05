@@ -2,7 +2,7 @@ from llq import DeleteJobMutation, UpdateJobStatusMutation, GraphQLClient
 from llq.schema import PostStatusEnum
 from config import Config
 from src.auth import get_jwt_token
-from slack_bolt.async_app import AsyncSay
+from slack_bolt.async_app import AsyncSay, AsyncAck
 from typing import Any
 
 
@@ -26,7 +26,8 @@ def _get_job_id_from_body(body: dict[str, Any]) -> str:
     return job_id
 
 
-async def approve_job_action(say: AsyncSay, body: dict[str, Any]):
+async def approve_job_action(ack: AsyncAck, say: AsyncSay, body: dict[str, Any]):
+    await ack()
     job_id = _get_job_id_from_body(body)
     client = await _authenticated_client()
     try:
@@ -41,7 +42,8 @@ async def approve_job_action(say: AsyncSay, body: dict[str, Any]):
         await client.close()
 
 
-async def reject_job_action(say: AsyncSay, body: dict[str, Any]):
+async def reject_job_action(ack: AsyncAck, say: AsyncSay, body: dict[str, Any]):
+    await ack()
     job_id = _get_job_id_from_body(body)
     client = await _authenticated_client()
     try:
