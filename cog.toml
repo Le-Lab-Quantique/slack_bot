@@ -1,0 +1,22 @@
+branch_whitelist = ["main"]
+
+ignore_merge_commits = true
+
+pre_bump_hooks = [
+  "sed -i '' -E \"s/(version = )\\\"[0-9]+\\.[0-9]+\\.[0-9]+\\\"/\\1\\\"{{version}}\\\"/\" pyproject.toml",
+  "uv sync",
+]
+
+post_bump_hooks = ["git push", "git push origin v{{version}}"]
+
+tag_prefix = "v"
+
+[git_hooks.commit-msg]
+script = """#!/bin/sh
+set -e
+cog verify --file $1
+"""
+
+[changelog]
+path = "CHANGELOG.md"
+authors = []
