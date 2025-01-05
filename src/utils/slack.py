@@ -1,4 +1,4 @@
-def process_body_result(body: dict) -> dict[str, str]:
+def process_body_result(body: dict[str, any]) -> dict[str, str]:
     values_of_interest = {}
     for _, value in body["view"]["state"]["values"].items():
         for nested_key, nested_value in value.items():

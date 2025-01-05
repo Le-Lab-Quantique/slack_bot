@@ -1,17 +1,14 @@
 import logging
 import os
-from typing import Optional, Callable, Awaitable
+from typing import Optional 
 from slack_sdk.socket_mode.aiohttp import SocketModeClient
 from slack_bolt.app.async_app import AsyncApp
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from aiohttp import web
 from slack_bolt.middleware.async_middleware import AsyncMiddleware
-from slack_bolt.request.async_request import AsyncBoltRequest
-from slack_bolt.response import BoltResponse
-
 from config import load_config
 from src.slack import register_listeners
-from llq import GraphQLClient
+from llq import GraphQLClient, RestClient
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -24,19 +21,24 @@ config = load_config(env)
 
 app = AsyncApp(token=config.SLACK_BOT_TOKEN)
 graphql_client = GraphQLClient(endpoint_url=config.GRAPHQL_ENDPOINT)
+rest_client = RestClient(base_url=config.LLQ_ENDPOINT)
 socket_mode_client: Optional[SocketModeClient] = None
+
 class GraphQLMiddleware(AsyncMiddleware):
     def __init__(self, client: GraphQLClient):
         self.client = client
 
-    async def async_process(
-        self,
-        req: AsyncBoltRequest,
-        _resp: BoltResponse,
-        next: Callable[[], Awaitable[BoltResponse]]
-    ) -> Optional[BoltResponse]: 
+    async def async_process(self, *, req, resp, next):
         req.context["graphql_client"] = self.client
         return await next()
+
+class RestMiddleware(AsyncMiddleware):
+    def __init__(self, client: RestClient):
+        self.client = client
+    
+    async def async_process(self, *, req, resp, next):
+        req.context["rest_client"] = self.client
+        return await next() 
 
 async def start_services(web_app: web.Application):
     """
@@ -51,6 +53,9 @@ async def start_services(web_app: web.Application):
         
         await graphql_client.connect()
         logger.info("GraphQL client initialized")
+
+        await rest_client.connect()
+        logger.info("Rest client initialized")
         
         await register_listeners(app)
         logger.info("Listeners registered successfully")
@@ -70,6 +75,9 @@ async def shutdown_services(web_app: web.Application):
             logger.info("Socket Mode client closed successfully")
         await graphql_client.close()
         logger.info("GraphQL client closed successfully")
+
+        await rest_client.close() 
+        logger.info("Rest client closed successfully")
     except Exception as e:
         logger.error(f"Error during shutdown: {e}")
 
@@ -96,3 +104,4 @@ async def setup_web_app() -> web.Application:
     return web_app
 
 app.use(GraphQLMiddleware(graphql_client))
+app.use(RestMiddleware(rest_client))
