@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, List, Sequence, Callable, Any, Dict, TypeVar, Coroutine
+from typing import Optional, List, Sequence, Any
 
 from slack_sdk.models.views import View
 from slack_sdk.models.blocks import (
@@ -12,15 +12,10 @@ from slack_sdk.models.blocks import (
 )
 from llq.type.job import CreateJobAcf
 from llq import GraphQLClient, CustomTermsQuery, PartnersQuery, PartnerByIdQuery
-from llq.queries.job import TermsResponse
-from llq.queries.partner import PartnersResponse, PartnerType
-from ..utils import process_body_result
+from llq.queries.partner import PartnerType
+from src.utils import async_fetch, process_body_result
 
 CREATE_JOB_CALLBACK_ID = "create_job_modal"
-
-# Type variables for input and output
-TQuery = TypeVar("TQuery", bound=Callable[..., Any])
-TResponse = TypeVar("TResponse")
 
 class ActionId:
     TITLE = "job_title_"
@@ -33,20 +28,9 @@ class ActionId:
     OCCUPATION_KIND = "job_type_of_post_"
     COMPANY = "job_compagny_name_"
 
-def async_fetch_data(
-    client: GraphQLClient,
-    query_func: TQuery,
-    parser: Callable[[dict], TResponse],
-) -> Callable[..., Coroutine[Any, Any, TResponse]]:
-    async def fetch(**query_args: Dict[str, Any]) -> TResponse:
-        query_instance = query_func(**query_args) 
-        response = await client.execute(query_instance) 
-        return parser(response) 
-    return fetch
-
-fetch_custom_terms = async_fetch_data(GraphQLClient, CustomTermsQuery, TermsResponse.parse)
-fetch_partners = async_fetch_data(GraphQLClient, PartnersQuery, PartnersResponse.parse)
-fetch_partner_by_id = async_fetch_data(GraphQLClient, PartnerByIdQuery, PartnerByIdQuery.parse)
+fetch_custom_terms = async_fetch(CustomTermsQuery, CustomTermsQuery.parse)
+fetch_partners = async_fetch(PartnersQuery, PartnersQuery.parse)
+fetch_partner_by_id = async_fetch(PartnerByIdQuery, PartnerByIdQuery.parse)
 
 def create_static_select_block(
     label: str,
@@ -65,18 +49,16 @@ def create_static_select_block(
         element=select_element,
     )
 
-async def create_select_block_from_data(
-    client: GraphQLClient,
+def create_select_block_from_fetched_data(
+    custom_terms,
     label: str,
     action_id: str,
     placeholder: str,
     term_type: Optional[str] = None,
 ) -> InputBlock:
-    custom_terms = await fetch_custom_terms(client, first=100)
     data = getattr(custom_terms, term_type).nodes
-
     options = [
-        Option(text=PlainTextObject(text=item.name), value=getattr(item, 'uri', item.id))
+        Option(text=PlainTextObject(text=item.name), value=item.name)
         for item in data
     ]
     return create_static_select_block(label, action_id, placeholder, options)
@@ -113,6 +95,7 @@ def create_plain_text_input_block(
     )
 
 async def create_job_modal(client: GraphQLClient) -> View:
+    custom_terms = await fetch_custom_terms(client, first=100)
     input_blocks: Sequence[Block] = [
         create_plain_text_input_block(
             label="Job Title",
@@ -131,22 +114,22 @@ async def create_job_modal(client: GraphQLClient) -> View:
             placeholder="Enter job localization",
         ),
         await create_select_compagnies_input(client),
-        await create_select_block_from_data(
-            client,
+        create_select_block_from_fetched_data(
+            custom_terms=custom_terms,
             label="Contract",
             action_id=ActionId.CONTRACT_KIND,
             placeholder="Select a contract",
             term_type="contract_kinds",
         ),
-        await create_select_block_from_data(
-            client,
+        create_select_block_from_fetched_data(
+            custom_terms=custom_terms,
             label="Sector",
             action_id=ActionId.OCCUPATION_KIND,
             placeholder="Select a sector",
             term_type="occupation_kinds",
         ),
-        await create_select_block_from_data(
-            client,
+        create_select_block_from_fetched_data(
+            custom_terms=custom_terms,
             label="Presence",
             action_id=ActionId.JOB_MODE,
             placeholder="Select a job mode",
@@ -179,17 +162,24 @@ async def create_job_modal(client: GraphQLClient) -> View:
 class CreatedJobResult:
     job: CreateJobAcf
     partner: PartnerType
+    contract_kinds: list[str]
+    occupation_kinds: list[str]
+    job_modes: list[str]
 
-async def map_to_job(client: GraphQLClient, body: dict) -> CreatedJobResult:
+async def init_job_input(client: GraphQLClient, body: dict[str, Any]) -> CreatedJobResult:
     attributes = process_body_result(body)
+    contract_kinds = attributes.pop("job_type_of_contract_")
+    job_modes = attributes.pop("job_presence_")
+    occupation_kinds = attributes.pop("job_type_of_post_")
 
     company_id = attributes.get(ActionId.COMPANY, None)
     if not company_id:
         raise ValueError("Company ID not found in attributes")
 
-    partner: PartnerType = await fetch_partner_by_id(client=client, id=company_id)
+    result = await fetch_partner_by_id(client=client, id=company_id)
+    partner = result.partner.partner_acf
 
-    attributes[ActionId.COMPANY] = partner.partner_acf.partner_name
-    attributes["job_company_logo"] = partner.partner_acf.partner_logo.node.database_id
+    attributes[ActionId.COMPANY] = partner.partner_name
+    attributes["job_compagny_logo"] = partner.partner_logo.node.database_id
 
-    return CreatedJobResult(job=CreateJobAcf(**attributes), partner=partner)
+    return CreatedJobResult(job=CreateJobAcf(**attributes), partner=partner, occupation_kinds=occupation_kinds, job_modes=job_modes, contract_kinds=contract_kinds)

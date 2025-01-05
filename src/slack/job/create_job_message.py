@@ -21,8 +21,8 @@ def create_confirm_or_reject_message(
 
     section = SectionBlock(text=markdown)
 
-    image_url = posted_job.partner.media_item_url
-    alt_text = posted_job.partner.alt_text or "partner logo"
+    image_url = posted_job.partner.partner_acf.partner_logo.node.media_item_url
+    alt_text = posted_job.partner.partner_acf.partner_logo.node.alt_text or "partner logo"
     image = ImageElement(image_url=image_url, alt_text=alt_text)
 
     divider = DividerBlock()
