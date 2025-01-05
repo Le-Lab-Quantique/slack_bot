@@ -13,7 +13,7 @@ async def handle_next_event_command(ack: AsyncAck, respond: AsyncRespond, contex
     await ack() 
     current_date = datetime.now()  
     graphql_client: GraphQLClient = context["graphql_client"] 
-    result = await fetch_next_event(client=graphql_client, first=1, start_date={
+    result = await fetch_next_event(client=graphql_client, first=1, date={
         "year": current_date.year,
         "month": current_date.month,
         "day": current_date.day,
