@@ -12,7 +12,7 @@ from slack_sdk.models.blocks import (
 )
 from llq.type.job import CreateJobAcf
 from llq import GraphQLClient, CustomTermsQuery, PartnersQuery, PartnerByIdQuery
-from llq.queries.partner import PartnerType
+from llq.type.partner import Partner
 from src.utils import async_fetch, process_body_result
 
 CREATE_JOB_CALLBACK_ID = "create_job_modal"
@@ -161,7 +161,7 @@ async def create_job_modal(client: GraphQLClient) -> View:
 @dataclass
 class CreatedJobResult:
     job: CreateJobAcf
-    partner: PartnerType
+    partner: Partner
     contract_kinds: list[str]
     occupation_kinds: list[str]
     job_modes: list[str]
