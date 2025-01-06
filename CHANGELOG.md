@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.0.3 - 2025-01-06
+#### Performance Improvements
+- reduce nb of workers with gunicorn - (017c03a) - Angel Dijoux
+
+- - -
+
 ## v0.0.2 - 2025-01-05
 #### Build system
 - adapt build part & optmize workers + add health check - (9864e94) - Angel Dijoux
